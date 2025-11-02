@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <title>Zombie Tilemap</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="screen-orientation" content="landscape">
+  <meta name="x5-orientation" content="landscape">
+</head>
+<body>
+  <div id="gameWrap">
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="controls">
+        <div id="leftBtn" class="btn">◀</div>
+        <div id="rightBtn" class="btn">▶</div>
+    </div>
+    <div id="jumpBtn" class="btn small">▲</div>
+  </div>
+
+  <!-- Level(s) -->
+  <script src="level1.js"></script>
+  <!-- Optional: Select current level -->
+  <script>window.currentLevelName = 'level1';</script>
+
+  <!-- Game logic -->
+  <script src="game.js"></script>
+
+</body>
+</html>

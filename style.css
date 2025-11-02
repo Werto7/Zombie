@@ -1,0 +1,51 @@
+/* Mobile design and basic style */
+html,body{height:100%;margin:0;background:#111;color:#eee;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+#gameWrap{position:relative;height:100%;display:flex;flex-direction:column}
+canvas{display:block;flex:1;width:100%;background:linear-gradient(#87CEEB,#5DADEC 60%, #1e1e1e 100%)}
+.hud{position:absolute;left:12px;top:12px;z-index:20;backdrop-filter:blur(4px);background:rgba(0,0,0,0.25);padding:6px 8px;border-radius:8px}
+.controls {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 30;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.btn{width:64px;height:64px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);color:#fff;font-weight:600;user-select:none;touch-action:none}
+.btn:active{transform:scale(.98)}
+.small{width:44px;height:44px;border-radius:10px}
+.topbar{position:absolute;left:0;right:0;top:0;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;z-index:40}
+.toggle{padding:6px 10px;background:rgba(255,255,255,0.06);border-radius:10px}
+.info{font-size:13px}
+/* Avoid default selection and gestures on touch devices */
+body,button{ -webkit-touch-callout:none; -webkit-user-select:none; -ms-user-select:none; user-select:none; }
+
+#jumpBtn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 30;
+}
+
+/* Forces landscape orientation */
+@media screen and (orientation: portrait) {
+  #gameWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+
+  #gameWrap::after {
+    content: "Please turn your device to landscape mode";
+    color: white;
+    font-size: 1.2em;
+    text-align: center;
+    padding: 20px;
+  }
+
+  canvas, .controls, .topbar {
+    display: none !important;
+  }
+}
