@@ -177,36 +177,82 @@
 
     player.vy += GRAV * dt;
 
-    //X
+    // --- X (Horizontal Collision) - block if there is a tile in front of the player ---
     let nx = player.x + player.vx * dt;
     let ny = player.y;
-    const hitsX = rectTileCollision(nx, ny, player.w, player.h);
-    if(hitsX.length){
-      if(player.vx > 0){
-        const minTx = Math.min(...hitsX.map(h=>h.tx));
-        nx = minTx * TILE - player.w - 0.01;
-        player.vx = 0;
-      } else if(player.vx < 0){
-        const maxTx = Math.max(...hitsX.map(h=>h.tx));
-        nx = (maxTx+1) * TILE + 0.01;
+
+    if (player.vx !== 0) {
+      const dir = player.vx > 0 ? 1 : -1;
+      //Leading edge after the movement (right = nx+w, left = nx)
+      const leadX = dir > 0 ? (nx + player.w) : nx;
+      const probeTileX = Math.floor(leadX / TILE);
+
+      //Tile row that corresponds vertically to the player (full body height)
+      const topTy = Math.floor(player.y / TILE);
+      const bottomTy = Math.floor((player.y + player.h - 1) / TILE);
+
+      let blocked = false;
+      //Check the entire vertical span for an obstruction in the leading column
+      for (let ty = topTy; ty <= bottomTy; ty++) {
+        if (probeTileX < 0 || probeTileX >= MAP_W || ty < 0 || ty >= MAP_H) continue;
+        const t = map[ty][probeTileX];
+        if (t !== 0) { blocked = true; break; } // jedes Tile blockiert
+      }
+
+      if (blocked) {
+        //Set nx so that the player stops directly in front of the tile
+        if (dir > 0) {
+          nx = probeTileX * TILE - player.w - 0.01;
+        } else {
+          nx = (probeTileX + 1) * TILE + 0.01;
+        }
         player.vx = 0;
       }
     }
 
-    //Y
+    // --- Y (Vertical Collision) ---
     ny = player.y + player.vy * dt;
-    const hitsY = rectTileCollision(nx, ny, player.w, player.h);
+    //We need to treat platforms (type 2) specifically:
+    //- When falling (vy>0), they should collide as ground at half tile height
+    //- They should be ignored when ascending (vy<0) (one-way)
+    const hitsY_all = rectTileCollision(nx, ny, player.w, player.h);
+    //Mark if we have any valid collisions (taking the types into account)
     player.onGround = false;
-    if(hitsY.length){
+
+    if(hitsY_all.length){
+      //If falling: find the next highest collision surface (min surfaceY)
       if(player.vy > 0){
-        const minTy = Math.min(...hitsY.map(h=>h.ty));
-        ny = minTy * TILE - player.h - 0.01;
-        player.vy = 0;
-        player.onGround = true;
+        let nearestSurfaceY = Infinity;
+        for(const h of hitsY_all){
+          const ty = h.ty;
+          const t = h.t;
+          //Calculate surface area Y (top y) depending on the tile type
+          let surfaceY;
+          if(t === 2){
+            //Platform: Top edge is at ty*TILE + TILE*0.5
+            surfaceY = ty * TILE + TILE * 0.5;
+          } else {
+            //Normal floor/wall: Top edge is ty * TILE
+            surfaceY = ty * TILE;
+          }
+          //We want the smallest surfaceY (top collision)
+          if(surfaceY < nearestSurfaceY) nearestSurfaceY = surfaceY;
+        }
+
+        //Once we've found a surface, we place player's y directly on it
+        if(nearestSurfaceY < Infinity){
+          ny = nearestSurfaceY - player.h - 0.01;
+          player.vy = 0;
+          player.onGround = true;
+        }
       } else if(player.vy < 0){
-        const maxTy = Math.max(...hitsY.map(h=>h.ty));
-        ny = (maxTy+1) * TILE + 0.01;
-        player.vy = 0;
+        //When ascending: IGNORE platforms (t===2), only consider solid tiles as ceilings
+        const solidHits = hitsY_all.filter(h => h.t !== 2);
+        if(solidHits.length){
+          const maxTy = Math.max(...solidHits.map(h=>h.ty));
+          ny = (maxTy + 1) * TILE + 0.01;
+          player.vy = 0;
+        }
       }
     }
 
